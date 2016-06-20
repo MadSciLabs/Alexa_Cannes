@@ -87,7 +87,7 @@ HistoryBuffSkill.prototype.eventHandlers.onSessionStarted = function (sessionSta
 
 HistoryBuffSkill.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
     console.log("HistoryBuffSkill onLaunch requestId: " + launchRequest.requestId + ", sessionId: " + session.sessionId);
-    getWelcomeResponse(response);
+    getWelcomeResponse(session, response);
 };
 
 HistoryBuffSkill.prototype.eventHandlers.onSessionEnded = function (sessionEndedRequest, session) {
@@ -99,22 +99,27 @@ HistoryBuffSkill.prototype.eventHandlers.onSessionEnded = function (sessionEnded
 
 HistoryBuffSkill.prototype.intentHandlers = {
 
-    "ColorIntent": function (intent, session, response) {
-        handleColorRequest(intent, session, response);
+    "YesNoIntent": function (intent, session, response) {
+        handleYesNoRequest(intent, session, response);
     },
 
-    "GetSelectionIntent": function (intent, session, response) {
-        handleSelectionEventRequest(intent, session, response);
+    "ContinueIntent": function (intent, session, response) {
+        handleContinueRequest(intent, session, response);
     },
 
-    "GetCountSevenAnswer": function (intent, session, response) {
-        handleCountSevenEventRequest(intent, session, response);
+    "QuestionIntent": function (intent, session, response) {
+        handleQuestionRequest(intent, session, response);
     },
-    "GetCountThirtyAnswer": function (intent, session, response) {
-        handleCountThirtyEventRequest(intent, session, response);
+
+    "DayOfWeekIntent": function (intent, session, response) {
+        handleDayOfWeekRequest(intent, session, response);
     },
-    "GetHowManyMonthsAnswer": function (intent, session, response) {
-        handleHowManyMonthsRequest(intent, session, response);
+    "WashHandsIntent": function (intent, session, response) {
+        handleWashHandsRequest(intent, session, response);
+    },
+
+    "GoToIntent": function (intent, session, response) {
+        handleGoToRequest(intent, session, response);
     },
 
     "AMAZON.HelpIntent": function (intent, session, response) {
@@ -174,15 +179,25 @@ function getColor(_color) {
  * Function to handle the onLaunch skill behavior
  */
 
-function getWelcomeResponse(response) {
+
+
+function getWelcomeResponse(session, response) {
 
     // If we wanted to initialize the session to have some attributes we could add those here.
-    var cardTitle = "Hear";
+    var cardTitle = "There";
     var repromptText = "Would you like to learn, laugh, or make.";
-    var speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/hear/learn_intro.mp3\" />";
+    
+    var speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/n1.mp3\" />";
+    //var speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/hear/learn_intro.mp3\" />";
+
     var cardOutput = "Would you like to learn, laugh, or make.";
     // If the user either does not reply to the welcome message or says something that is not
     // understood, they will be prompted again with this text.
+
+    session.attributes.myState = 0;
+    session.attributes.stateName = "Welcome back to There";
+
+    //speechText = session.attributes.stateName;
 
     var speechOutput = {
         speech: "<speak>" + speechText + "</speak>",
@@ -192,7 +207,242 @@ function getWelcomeResponse(response) {
         speech: repromptText,
         type: AlexaSkill.speechOutputType.PLAIN_TEXT
     };
+
     response.askWithCard(speechOutput, repromptOutput, cardTitle, cardOutput);
+
+    //var sessionAttributes = {};
+    //sessionAttributes.myState = 0;
+    //session.attributes = sessionAttributes;
+}
+
+function getNextPrompt(_val, session, response, _state) {
+
+    var speechText = "";
+
+    if (!session.attributes.myState)
+    {
+        session.attributes.myState = 0;
+        session.attributes.stateName = "Welcome";
+        speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/n1.mp3\" />";
+    }
+
+    switch (_state) {
+
+        case 0:
+
+            session.attributes.myState = 1;
+            speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/n2.mp3\" />";
+            break;
+
+        case 1:
+
+            session.attributes.myState = 2;
+            speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/n3.mp3\" />";
+            break;
+
+        case 2:
+
+            session.attributes.myState = 3;
+            speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/n4.mp3\" />";
+            break;
+
+        case 3:
+
+            session.attributes.myState = 4;
+            speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/n5.mp3\" />";
+            break;
+
+        case 4:
+
+            session.attributes.myState = 5;
+            speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/n6.mp3\" />";
+            break;
+
+        case 5:
+
+            session.attributes.myState = 6;
+            speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/n7.mp3\" />";
+            break;
+
+        case 6:
+
+            session.attributes.myState = 8;
+            session.attributes.stateName = "Ok, hope you enjoy it.";
+
+            speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/n8.mp3\" /><audio src=\"https://s3.amazonaws.com/lab-alexa/there/g1.mp3\" />";
+            break;
+
+        case 8:
+
+            //if (_val == "Wednesday") {
+            if (1 == 1)
+            {
+
+                session.attributes.stateName = "9 - Story - Wednesday";
+                session.attributes.myState = 9;
+
+                speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/g2.mp3\" />";
+            } else {
+
+                session.attributes.stateName = "10 - Story - Not Wednesday";
+                session.attributes.myState = 10;
+
+                speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/g5.mp3\" />";
+            }
+            break;
+
+        case 9:
+        case 10:
+
+            if (_val == "washes hands" || _val == "washes his hands") {
+
+                session.attributes.stateName = "11 - Story - Wash";
+                session.attributes.myState = 11;
+
+                speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/g4.mp3\" />";
+
+            } else {
+
+                session.attributes.stateName = "12 - Story - Not Wash";
+                session.attributes.myState = 11;
+
+                speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/g3.mp3\" />";
+            }
+            break;
+
+        case 11:
+
+            speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/there/n9.mp3\" />";
+            break;
+    }
+
+    var repromptText = "Reprompt";
+    var cardTitle = "Card title";
+    var cardContent = "Card content";
+
+    
+    if (speechText == "") {
+        speechText = session.attributes.stateName;
+    }
+
+    /*
+    if (_val == 12) {
+        speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/hear/body_4.mp3\" /><audio src=\"https://s3.amazonaws.com/lab-alexa/hear/body_6.mp3\" /><audio src=\"https://s3.amazonaws.com/lab-alexa/hear/body_8.mp3\" /><audio src=\"https://s3.amazonaws.com/lab-alexa/hear/body_9.mp3\" /><audio src=\"https://s3.amazonaws.com/lab-alexa/hear/body_10.mp3\" />";
+    } else {
+        speechText = "<audio src=\"https://s3.amazonaws.com/lab-alexa/hear/body_5.mp3\" />";
+    }
+    */
+
+    var speechOutput = {
+                speech: "<speak>" + speechText + "</speak>",
+                type: AlexaSkill.speechOutputType.SSML
+            };
+
+    var repromptOutput = {
+                speech: repromptText,
+                type: AlexaSkill.speechOutputType.PLAIN_TEXT
+            };
+
+    response.askWithCard(speechOutput, repromptOutput, cardTitle, cardContent);
+}
+
+function handleYesNoRequest(intent, session, response) {
+
+    var _yesno = "";
+
+    if (intent.slots.myyesno) {
+
+        _yesno = intent.slots.myyesno.value;
+    }
+
+    getNextPrompt(_yesno,session,response,session.attributes.myState);
+}
+
+function handleContinueRequest(intent, session, response) {
+
+    getNextPrompt("",session,response,session.attributes.myState);
+}
+
+function handleQuestionRequest(intent, session, response) {
+
+    var _question = "";
+
+    if (intent.slots.myquestion) {
+        _question = intent.slots.myquestion.value;
+    }
+
+    getNextPrompt(_question,session,response,session.attributes.myState);
+}
+
+function handleDayOfWeekRequest(intent, session, response) {
+
+    var _day = "";
+
+    if (intent.slots.mydayofweek) {
+        _day = intent.slots.mydayofweek.value;
+    }
+
+    getNextPrompt(_day,session,response,session.attributes.myState);
+}
+
+function handleWashHandsRequest(intent, session, response) {
+
+    var _wash = "";
+
+    if (intent.slots.mywashhands) {
+        _wash = intent.slots.mywashhands.value;
+    }
+
+    getNextPrompt(_wash,session,response,session.attributes.myState);
+}
+
+function handleGoToRequest(_val, session, response) {
+
+    _num = 8;
+
+/*
+    switch (_val) {
+
+        case "one":
+            _num = 1;
+            break;
+        case "two":
+            _num = 2;
+            break;
+        case "three":
+            _num = 3;
+            break;
+        case "four":
+            _num = 4;
+            break;
+        case "five":
+            _num = 5;
+            break;
+        case "six":
+            _num = 6;
+            break;
+        case "seven":
+            _num = 7;
+            break;
+        case "eight":
+            _num = 8;
+            break;
+        case "nine":
+            _num = 9;
+            break;
+        case "ten":
+            _num = 10;
+            break;
+    }
+*/
+
+    session.attributes.myState = 8;
+
+    getNextPrompt("", session, response, _num);
+
+    //var sessionAttributes = {};
+    //sessionAttributes.myState = 0;
+    //session.attributes = sessionAttributes;
 }
 
 function handleColorRequest(intent, session, response) {
@@ -228,6 +478,7 @@ function handleColorRequest(intent, session, response) {
     response.askWithCard(speechOutput, repromptOutput, cardTitle, cardContent);
 }
 
+/*
 function handleSelectionEventRequest(intent, session, response) {
 
    var _choice = "";
@@ -267,20 +518,16 @@ function handleSelectionEventRequest(intent, session, response) {
 
     response.askWithCard(speechOutput, repromptOutput, cardTitle, cardContent);
 }
-
+*/
 
 /**
  * Gets a poster prepares the speech to reply to the user.
  */
+ /*
 function handleCountSevenEventRequest(intent, session, response) {
 
     var _val = "";
 
-/*
-    if (intent.slots.myanswer) {
-        _choice = intent.slots.myanswer.value;
-    }
-*/
     var repromptText = "Can you count to thirty?";
 
     var cardTitle = "Card title";
@@ -302,16 +549,11 @@ function handleCountSevenEventRequest(intent, session, response) {
 
     response.askWithCard(speechOutput, repromptOutput, cardTitle, cardContent);
 }
-
+*/
+/*
 function handleCountThirtyEventRequest(intent, session, response) {
 
     var _val = "";
-
-/*
-    if (intent.slots.myanswer) {
-        _choice = intent.slots.myanswer.value;
-    }
-*/
 
     var repromptText = "How many months are in a year?";
 
@@ -334,7 +576,8 @@ function handleCountThirtyEventRequest(intent, session, response) {
 
     response.askWithCard(speechOutput, repromptOutput, cardTitle, cardContent);
 }
-
+*/
+/*
 function handleHowManyMonthsRequest(intent, session, response) {
 
     var _val = "";
@@ -368,80 +611,13 @@ function handleHowManyMonthsRequest(intent, session, response) {
 
     response.askWithCard(speechOutput, repromptOutput, cardTitle, cardContent);
 }
+*/
 
 
 /**
  * Gets a poster prepares the speech to reply to the user.
  */
-function handleNextEventRequest(intent, session, response) {
 
-    var cardTitle = "Card title",
-    cardContent = "",
-    sessionAttributes = session.attributes,
-    _choice = sessionAttributes.mychoice,
-    speechText = "",
-    repromptText = "What do you want to do next",
-    _subject = "";
-
-
-    if (intent.slots.mysubject) {
-        _subject = intent.slots.mysubject.value;
-    }
-
-    speechText = "Ok, here is some test audio for " + _subject + ": <audio src=\"https://s3.amazonaws.com/lab-alexa/output2.mp3\" />";
-
-    var speechOutput = {
-                speech: "<speak>" + speechText + "</speak>",
-                type: AlexaSkill.speechOutputType.SSML
-            };
-
-    var repromptOutput = {
-                speech: repromptText,
-                type: AlexaSkill.speechOutputType.PLAIN_TEXT
-            };
-
-    response.askWithCard(speechOutput, repromptOutput, cardTitle, cardContent);
-
-    /*
-    var cardTitle = "More events on this day in history",
-        sessionAttributes = session.attributes,
-        result = sessionAttributes.text,
-        speechText = "",
-        cardContent = "",
-        repromptText = "Do you want to know more about what happened on this date?",
-        i;
-    if (!result) {
-        speechText = "With History Buff, you can get historical events for any day of the year.  For example, you could say today, or August thirtieth. Now, which day do you want?";
-        cardContent = speechText;
-    } else if (sessionAttributes.index >= result.length) {
-        speechText = "There are no more events for this date. Try another date by saying <break time = \"0.3s\"/> get events for august thirtieth.";
-        cardContent = "There are no more events for this date. Try another date by saying, get events for august thirtieth.";
-    } else {
-        for (i = 0; i < paginationSize; i++) {
-            if (sessionAttributes.index>= result.length) {
-                break;
-            }
-            speechText = speechText + "<p>" + result[sessionAttributes.index] + "</p> ";
-            cardContent = cardContent + result[sessionAttributes.index] + " ";
-            sessionAttributes.index++;
-        }
-        if (sessionAttributes.index < result.length) {
-            speechText = speechText + " Wanna go deeper in history?";
-            cardContent = cardContent + " Wanna go deeper in history?";
-        }
-    }
-    var speechOutput = {
-        speech: "<speak>" + speechText + "</speak>",
-        type: AlexaSkill.speechOutputType.SSML
-    };
-    var repromptOutput = {
-        speech: repromptText,
-        type: AlexaSkill.speechOutputType.PLAIN_TEXT
-    };
-    response.askWithCard(speechOutput, repromptOutput, cardTitle, cardContent);
-    */
-
-}
 
 function getJsonEventsFromWikipedia(day, date, eventCallback) {
     var url = urlPrefix + day + '_' + date;
